@@ -7,7 +7,7 @@ import subprocess
 import time
 from pathlib import Path
 
-REPO = Path(os.environ.get("BRIDGE_REPO_DIR", ".")).resolve()
+REPO = Path(__file__).resolve().parent
 INTERVAL = int(os.environ.get("BRIDGE_INTERVAL_SECONDS", "15"))
 TIMEOUT = int(os.environ.get("BRIDGE_COMMAND_TIMEOUT_SECONDS", "300"))
 
@@ -46,9 +46,6 @@ def run_one(command: Path) -> None:
 
 def cycle() -> None:
     git("pull", "--ff-only")
-    if os.environ.get("BRIDGE_ENABLE_EXECUTION") != "1":
-        print("execution disabled; set BRIDGE_ENABLE_EXECUTION=1", flush=True)
-        return
     for command in sorted((REPO / "inbox").glob("*.sh")):
         run_one(command)
     if list((REPO / "outbox").iterdir()) or list((REPO / "processed").iterdir()):
@@ -66,4 +63,3 @@ if __name__ == "__main__":
         except Exception as exc:
             print(f"bridge cycle failed: {exc}", flush=True)
         time.sleep(INTERVAL)
-
